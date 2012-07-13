@@ -41,7 +41,9 @@ Multiple activity completion conditions may be set if desired.  If so, access to
 $string['completionconditionsection'] = 'Activity completion condition';
 $string['completionconditionsection_help'] = 'This setting determines any activity completion conditions which must be met in order to access the section. Note that completion tracking must first be set before an activity completion condition can be set.
 
-Multiple activity completion conditions may be set if desired.  If so, access to the section will only be permitted when ALL activity completion conditions are met.';
+Multiple activity completion conditions may be set if desired.  If so, access to the section will only be permitted when ALL activity completion conditions are met.
+
+Time duration for completion may be set if desired. If so, access to the activity will only be permitted when time interval after activity completion are met.';//pinky';
 $string['completion_fail'] = 'must be complete with fail grade';
 $string['completion_incomplete'] = 'must not be marked complete';
 $string['completion_pass'] = 'must be complete with pass grade';
@@ -83,3 +85,5 @@ $string['showavailabilitysection_show'] = 'Show section greyed-out, with restric
 $string['userrestriction_hidden'] = 'Restricted (completely hidden, no message): &lsquo;{$a}&rsquo;';
 $string['userrestriction_visible'] = 'Restricted: &lsquo;{$a}&rsquo;';
 $string['groupingnoaccess'] = 'You do not currently belong to a group which has access to this section. ';
+//pinky
+$string['timelimit'] = 'Time limit';

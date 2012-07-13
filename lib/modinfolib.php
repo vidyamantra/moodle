@@ -597,6 +597,14 @@ class cm_info extends stdClass {
      */
     public $conditionscompletion;
 
+	/** Pinky
+     * Availability conditions for this course-module based on the time interval of completion 
+     * of other course-modules (array from other course-module id to required time for that
+     * module) - from cached data in modinfo field
+     * @var array
+     */
+	public $conditionscompletiontime;
+	//pinky
     /**
      * Availability conditions for this course-module based on course grades (array from
      * grade item id to object with ->min, ->max fields) - from cached data in modinfo field
@@ -1004,7 +1012,9 @@ class cm_info extends stdClass {
                 ? $mod->conditionscompletion : array();
         $this->conditionsgrade = isset($mod->conditionsgrade)
                 ? $mod->conditionsgrade : array();
-
+		$this->conditionscompletiontime = isset($mod->conditionscompletiontime)
+                 ? $mod->conditionscompletiontime : array();//added by pinky
+                 
         // Get module plural name.
         // TODO This was a very old performance hack and should now be removed as the information
         // certainly doesn't belong in modinfo. On a 'normal' page this is only used in the
@@ -1426,6 +1436,14 @@ class section_info extends stdClass {
      */
     public $conditionscompletion;
 
+	/**Pinky
+     * Availability conditions for this section based on the completion time of
+     * course-modules (array from course-module id to required completion state
+     * for that module) - from cached data in sectioncache field
+     * @var array
+     */
+    public $conditionscompletiontime;
+    //Pinky
     /**
      * Availability conditions for this section based on course grades (array from
      * grade item id to object with ->min, ->max fields) - from cached data in
@@ -1503,7 +1521,8 @@ class section_info extends stdClass {
                 ? $data->conditionscompletion : array();
         $this->conditionsgrade = isset($data->conditionsgrade)
                 ? $data->conditionsgrade : array();
-
+		$this->conditionscompletiontime = isset($data->conditionscompletiontime)
+                ? $data->conditionscompletiontime : array();//pinky
         // Other data from other places
         $this->course = $courseid;
         $this->section = $number;
@@ -1577,6 +1596,9 @@ class section_info extends stdClass {
             }
             if (count($section->conditionsgrade) == 0) {
                 unset($section->conditionsgrade);
+            }
+            if (count($section->conditionscompletiontime) == 0) {
+                unset($section->conditionscompletiontime);
             }
         }
 

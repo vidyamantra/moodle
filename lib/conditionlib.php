@@ -143,6 +143,12 @@ class condition_info extends condition_info_base {
                     $CONDITIONLIB_PRIVATE->usedincondition[$course->id][$cmid] = true;
                 }
             }
+            //pinky
+            foreach ($modinfo->cms as $othercm) {
+                foreach ($othercm->conditionscompletiontime as $cmid => $expectedcompletiontime) {
+                    $CONDITIONLIB_PRIVATE->usedincondition[$course->id][$cmid] = true;
+                }
+            }//pinky
 
             // Sections
             foreach ($modinfo->get_section_info_all() as $section) {
@@ -408,7 +414,8 @@ abstract class condition_info_base {
         $this->gotdata = true;
 
         // Missing extra data
-        if (!isset($item->conditionsgrade) || !isset($item->conditionscompletion)) {
+        //pinky added conditionscompletiontime
+        if (!isset($item->conditionsgrade) || !isset($item->conditionscompletion) || !isset($item->conditionscompletiontime)) {
             if ($expectingmissing<CONDITION_MISSING_EXTRATABLE) {
                 debugging('Performance warning: condition_info constructor is ' .
                         'faster if you pass in a $item from get_fast_modinfo or ' .
@@ -446,14 +453,17 @@ abstract class condition_info_base {
         }
 
         // Does nothing if the variables are already present
-        if (!isset($item->conditionsgrade) || !isset($item->conditionscompletion)) {
+        //pinky added conditionscompletiontime
+        if (!isset($item->conditionsgrade) || !isset($item->conditionscompletion) || !isset($item->conditionscompletiontime)) {
             $item->conditionsgrade = array();
             $item->conditionscompletion = array();
-
+            $item->conditionscompletiontime=array();//pinky
+            
+			// below query edited by pinky. added time limit
             $conditions = $DB->get_records_sql('
                     SELECT
                         a.id AS aid, gi.*, a.sourcecmid, a.requiredcompletion, a.gradeitemid,
-                        a.grademin as conditiongrademin, a.grademax as conditiongrademax
+                        a.grademin as conditiongrademin, a.grademax as conditiongrademax,a.timelimit
                     FROM
                         {' . $tableprefix . '_availability} a
                         LEFT JOIN {grade_items} gi ON gi.id = a.gradeitemid
@@ -462,6 +472,10 @@ abstract class condition_info_base {
                 if (!is_null($condition->sourcecmid)) {
                     $item->conditionscompletion[$condition->sourcecmid] =
                         $condition->requiredcompletion;
+                    //added by pinky   
+                     $item->conditionscompletiontime[$condition->sourcecmid] =
+                        $condition->timelimit;
+                     //pinky
                 } else {
                     $minmax = new stdClass;
                     $minmax->min = $condition->conditiongrademin;
@@ -510,16 +524,19 @@ abstract class condition_info_base {
      * @param int $cmid ID of other module
      * @param int $requiredcompletion COMPLETION_xx constant
      */
-    public function add_completion_condition($cmid, $requiredcompletion) {
+     //this function edited by pinky. time limit field in add in param and db
+    public function add_completion_condition($cmid, $requiredcompletion,$timelimit=0) {
         global $DB;
         // Add to DB
         $DB->insert_record($this->availtable, (object)array(
                 $this->idfieldname => $this->item->id,
-                'sourcecmid' => $cmid, 'requiredcompletion' => $requiredcompletion),
+                'sourcecmid' => $cmid, 'requiredcompletion' => $requiredcompletion,'timelimit'=>$timelimit),
                 false);
 
         // Store in memory too
         $this->item->conditionscompletion[$cmid] = $requiredcompletion;
+        $this->item->conditionscompletiontime[$cmid] = $timelimit;//pinky
+
     }
 
     /**
@@ -570,6 +587,7 @@ abstract class condition_info_base {
         // And from memory
         $this->item->conditionsgrade = array();
         $this->item->conditionscompletion = array();
+        $this->item->conditionscompletiontime = array();//pinky
     }
 
     /**
@@ -787,11 +805,27 @@ abstract class condition_info_base {
                         $thisisok = false;
                     }
                 }
+                //pinky
+                $catchtime = false;
+                if(!empty($this->item->conditionscompletiontime[$cmid])){
+                	$completion_time_tmp = $completiondata->timemodified + $this->item->conditionscompletiontime[$cmid];
+                	if($completion_time_tmp > time()){
+                		$thisisok = false;
+                		$catchtime = true;
+                	}
+                }
+                //pinky
                 if (!$thisisok) {
                     $available = false;
-                    $information .= get_string(
+                    //pinky
+                    if ($catchtime) {
+                    	$information .= "Not available until ". userdate($completion_time_tmp).". ";
+                    }else{
+                    	$information .= get_string(
                         'requires_completion_' . $expectedcompletion,
                         'condition', $modinfo->cms[$cmid]->name) . ' ';
+                    }
+                    //pinky
                 }
             }
         }
@@ -1026,8 +1060,11 @@ abstract class condition_info_base {
         if(isset ($fromform->conditioncompletiongroup)) {
             foreach($fromform->conditioncompletiongroup as $record) {
                 if($record['conditionsourcecmid']) {
-                    $ci->add_completion_condition($record['conditionsourcecmid'],
-                        $record['conditionrequiredcompletion']);
+                    /*$ci->add_completion_condition($record['conditionsourcecmid'],
+                        $record['conditionrequiredcompletion']);*/
+                    // pinky// added time limit param 
+                      $ci->add_completion_condition($record['conditionsourcecmid'],
+                        $record['conditionrequiredcompletion'],$record['conditiontime']*$record['unit']);
                 }
             }
         }

@@ -265,6 +265,12 @@ abstract class moodleform_mod extends moodleform {
                     $groupelements=$mform->getElement('conditioncompletiongroup['.$num.']')->getElements();
                     $groupelements[0]->setValue($othercmid);
                     $groupelements[1]->setValue($state);
+                    //pinky//added time duration
+                    $timeunit=array();
+                    $timeunit=$this->time_conversion_seconds_to_unit($fullcm->conditionscompletiontime[$othercmid]);
+                    $groupelements[3]->setValue($timeunit[0]);
+                    $groupelements[4]->setValue($timeunit[1]);
+                    //pinky
                     $num++;
                 }
             }
@@ -555,6 +561,16 @@ abstract class moodleform_mod extends moodleform {
                 $grouparray = array();
                 $grouparray[] =& $mform->createElement('select','conditionsourcecmid','',$completionoptions);
                 $grouparray[] =& $mform->createElement('select','conditionrequiredcompletion','',$completionvalues);
+                //pinky
+                $grouparray[] =& $mform->createElement('static', '', '',' '.get_string('timelimit','condition').' ');
+                $grouparray[] =& $mform->createElement('text', 'conditiontime','',array('size'=>3));
+                $grouparray[] =& $mform->createElement('select','unit','',array(
+                	86400 => get_string('days'),
+                	3600 => get_string('hours'),
+                	60 => get_string('minutes'),
+                	1 => get_string('seconds'),
+            		));
+			 	//pinky
                 $group = $mform->createElement('group','conditioncompletiongroup',
                     get_string('completioncondition', 'condition'),$grouparray);
 
@@ -636,6 +652,30 @@ abstract class moodleform_mod extends moodleform {
 
         $this->standard_hidden_coursemodule_elements();
     }
+	
+	/**Pinky
+     * This function covert seconds in time(hour,min..)
+     * and also set the appropriate time unit 
+     * 
+     * $param $seconds time in seconds
+     * @return array Array of time and corresponding unit, empty array if none
+     */
+
+    function time_conversion_seconds_to_unit($seconds) {
+        if ($seconds == 0) {
+            return array(0, 'days');
+        }
+        $timeunits= array(86400 => 'days',
+                3600 => 'hours',
+                60 => 'minutes',
+                1 => 'seconds');
+        foreach ($timeunits as $unit => $notused) {
+            if (fmod($seconds, $unit) == 0) {
+                return array($seconds / $unit, $unit);
+            }
+        }
+        return array($seconds, 1);
+    }//pinky
 
     /**
      * Can be overridden to add custom completion rules if the module wishes

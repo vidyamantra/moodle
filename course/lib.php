@@ -1111,6 +1111,7 @@ function get_array_of_activities($courseid) {
                        condition_info::fill_availability_conditions($rawmods[$seq]);
                        $mod[$seq]->conditionscompletion = $rawmods[$seq]->conditionscompletion;
                        $mod[$seq]->conditionsgrade  = $rawmods[$seq]->conditionsgrade;
+                       $mod[$seq]->conditionscompletiontime = $rawmods[$seq]->conditionscompletiontime; //pinky
                    }
 
                    $modname = $mod[$seq]->mod;
@@ -1181,10 +1182,11 @@ function get_array_of_activities($courseid) {
 
                    // Minimise the database size by unsetting default options when they are
                    // 'empty'. This list corresponds to code in the cm_info constructor.
+                   //pinky added conditionscompletiontime
                    foreach (array('idnumber', 'groupmode', 'groupingid', 'groupmembersonly',
                            'indent', 'completion', 'extra', 'extraclasses', 'iconurl', 'onclick', 'content',
                            'icon', 'iconcomponent', 'customdata', 'showavailability', 'availablefrom',
-                           'availableuntil', 'conditionscompletion', 'conditionsgrade',
+                           'availableuntil', 'conditionscompletion','conditionscompletiontime', 'conditionsgrade',
                            'completionview', 'completionexpected', 'score', 'showdescription')
                            as $property) {
                        if (property_exists($mod[$seq], $property) &&
@@ -1480,7 +1482,8 @@ function print_section($course, $section, $mods, $modnamesused, $absolute=false,
                         $mod->availablefrom > time() ||
                         ($mod->availableuntil && $mod->availableuntil < time()) ||
                         count($mod->conditionsgrade) > 0 ||
-                        count($mod->conditionscompletion) > 0;
+                        count($mod->conditionscompletion) > 0 ||
+                        count($mod->conditionscompletiontime) > 0;
                 }
             }
 
